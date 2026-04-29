@@ -1,0 +1,70 @@
+{% extends 'hospital/base.html' %}
+
+{% block title %}Upload Lab Report{% endblock %}
+{% block page_title %}Upload Report for Appt #{{ appointment.token_number }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="ghk-card">
+            <div class="card-header">
+                <i class="bi bi-file-earmark-medical me-2"></i>Add Report for {{ appointment.patient_display_name }}
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-light border d-flex align-items-center mb-4">
+                    <div class="avatar me-3" style="width: 45px; height: 45px; font-size: 18px;">
+                        {{ appointment.patient_display_name|first|upper }}
+                    </div>
+                    <div>
+                        <div class="fw-bold">{{ appointment.patient_display_name }}</div>
+                        <div class="small text-muted">Dr. {{ appointment.doctor.user.display_name }} | {{ appointment.date }}</div>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Report For</label>
+                        {{ form.linked_member }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Report Title</label>
+                        {{ form.title }}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Category</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Record Date</label>
+                            {{ form.record_date }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Report File</label>
+                        {{ form.file }}
+                        <div class="form-text">Max size: 5MB (PDF/Images)</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Staff Description / Summary</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-ghk-primary">
+                            <i class="bi bi-check-circle me-2"></i>Finalize and Upload
+                        </button>
+                        <a href="{% url 'appointment_detail' appointment.id %}" class="btn btn-light">Back to Appointment</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Patient Profile - {{ p.display_name }}{% endblock %}
+{% block page_title %}<i class="bi bi-person-badge me-2"></i>Patient Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Sidebar: Patient Info -->
+    <div class="col-md-4">
+        <div class="ghk-card text-center p-4 mb-4">
+            <div class="avatar mx-auto mb-3" style="width: 80px; height: 80px; font-size: 32px;">{{ p.display_name|first|upper }}</div>
+            <h4 class="fw-bold mb-1">{{ p.display_name }}</h4>
+            <div class="badge bg-primary rounded-pill px-3 mb-3">PATIENT ID: #{{ p.id }}</div>
+            
+            <div class="text-start mt-4">
+                <div class="mb-3">
+                    <label class="small text-muted d-block">Treatment Duration</label>
+                    <span class="fw-bold text-success"><i class="bi bi-clock-history me-1"></i>{{ duration }}</span>
+                </div>
+                <div class="mb-3">
+                    <label class="small text-muted d-block">Current Physician</label>
+                    <span class="fw-bold"><i class="bi bi-person-heart me-1"></i>{{ physician }}</span>
+                </div>
+                <div class="mb-3">
+                    <label class="small text-muted d-block">Mobile Number</label>
+                    <span class="fw-bold">{{ p.mobile_no|default:"—" }}</span>
+                </div>
+                <div class="mb-3">
+                    <label class="small text-muted d-block">Email Address</label>
+                    <span class="fw-bold">{{ p.email|default:"—" }}</span>
+                </div>
+                <div>
+                    <label class="small text-muted d-block">Address</label>
+                    <span class="fw-bold" style="font-size: 13px;">{{ p.address|default:"—" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main: Medical Documents -->
+    <div class="col-md-8">
+        <div class="ghk-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-file-earmark-medical me-2"></i>Document Manager (EHR)</span>
+                <span class="badge bg-secondary">{{ records|length }} Documents</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table ghk-table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Record Title</th>
+                                <th>Category</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in records %}
+                            <tr>
+                                <td>{{ r.record_date|date:"d M Y" }}</td>
+                                <td class="fw-bold">{{ r.title }}</td>
+                                <td><span class="badge bg-light text-dark">{{ r.get_category_display }}</span></td>
+                                <td class="text-end">
+                                    <a href="{{ r.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-file-pdf me-1"></i>View PDF
+                                    </a>
+                                    <form method="post" action="{% url 'delete_medical_record' r.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to PERMANENTLY DELETE this document? This action cannot be undone.');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">No medical records found for this patient.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

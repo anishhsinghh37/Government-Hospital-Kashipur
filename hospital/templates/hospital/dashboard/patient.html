@@ -1,0 +1,147 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Patient Dashboard{% endblock %}
+{% block page_title %}<i class="bi bi-person-heart me-2"></i>Patient Dashboard{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div style="background:linear-gradient(135deg,#1a4f8a,#0d6efd);border-radius:20px;padding:28px 32px;margin-bottom:28px;color:white;position:relative;overflow:hidden;">
+    <div style="position:absolute;right:-20px;bottom:-30px;font-size:120px;opacity:0.08;"><i class="bi bi-hospital"></i></div>
+    <h2 style="font-weight:800;margin-bottom:4px;">Hello, {{ user.display_name }}! 👋</h2>
+    <p style="opacity:0.8;margin:0;font-size:14px;">Government Hospital Kashipur · Health Informatics System</p>
+    <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="{% url 'book_appointment' %}" class="btn btn-light btn-sm px-4" style="border-radius:20px;font-weight:600;">
+            <i class="bi bi-calendar-plus me-1"></i> Book Appointment
+        </a>
+        <a href="{% url 'ehr_dashboard' %}" class="btn btn-outline-light btn-sm px-4" style="border-radius:20px;font-weight:600;">
+            <i class="bi bi-file-earmark-medical me-1"></i> My Health Records
+        </a>
+        <a href="{% url 'medicine_availability' %}" class="btn btn-outline-light btn-sm px-4" style="border-radius:20px;font-weight:600;">
+            <i class="bi bi-capsule me-1"></i> Medicine Stock
+        </a>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#dbeafe;"><i class="bi bi-calendar-check" style="color:#1a4f8a;"></i></div>
+            <div class="stat-value">{{ today_appointments|length }}</div>
+            <div class="stat-label">Today's Visits</div>
+            <div class="stat-bg"><i class="bi bi-calendar-check"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#d1fae5;"><i class="bi bi-file-earmark-text" style="color:#065f46;"></i></div>
+            <div class="stat-value">{{ user.medical_records.count }}</div>
+            <div class="stat-label">EHR Records</div>
+            <div class="stat-bg"><i class="bi bi-file-earmark-text"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fef3c7;"><i class="bi bi-people" style="color:#92400e;"></i></div>
+            <div class="stat-value">{{ dependents|length }}</div>
+            <div class="stat-label">Family Members</div>
+            <div class="stat-bg"><i class="bi bi-people"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fce7f3;"><i class="bi bi-chat-text" style="color:#9d174d;"></i></div>
+            <div class="stat-value">{{ feedbacks|length }}</div>
+            <div class="stat-label">Support Tickets</div>
+            <div class="stat-bg"><i class="bi bi-chat-text"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Today's Queue -->
+    <div class="col-md-8">
+        <div class="ghk-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-list-ol me-2"></i>Today's Token Status ({{ today }})</span>
+                <a href="{% url 'book_appointment' %}" class="btn btn-sm btn-ghk-primary">
+                    <i class="bi bi-plus-lg"></i> New Appointment
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if today_appointments %}
+                <div class="table-responsive">
+                    <table class="table ghk-table mb-0">
+                        <thead><tr>
+                            <th>Token</th><th>Patient</th><th>Doctor</th><th>Status</th><th>Queue</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for appt in today_appointments %}
+                        <tr>
+                            <td><span class="token-badge {% if appt.status == 'IN_PROGRESS' %}current{% endif %}" style="width:40px;height:40px;font-size:14px;">{{ appt.token_number }}</span></td>
+                            <td>
+                                {{ appt.patient_display_name }}
+                                {% if appt.dependent %}<span class="badge bg-warning text-dark ms-1">Dep.</span>{% endif %}
+                            </td>
+                            <td>Dr. {{ appt.doctor.user.get_full_name }}</td>
+                            <td>
+                                {% if appt.status == 'WAITING' %}<span class="badge" style="background:#dbeafe;color:#1a4f8a;">⏳ Waiting</span>
+                                {% elif appt.status == 'IN_PROGRESS' %}<span class="badge bg-success">🔔 Serving Now</span>
+                                {% elif appt.status == 'COMPLETED' %}<span class="badge bg-secondary">✅ Completed</span>
+                                {% else %}<span class="badge bg-danger">{{ appt.status }}</span>{% endif %}
+                            </td>
+                            <td><a href="{% url 'live_queue' appt.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">Live Tracking</a></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5" style="color:#94a3b8;">
+                    <i class="bi bi-calendar-x" style="font-size:40px;display:block;margin-bottom:12px;"></i>
+                    No active appointments for today.
+                    <a href="{% url 'book_appointment' %}" class="text-primary fw-bold">Book a Token Now →</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Family Members -->
+    <div class="col-md-4">
+        <div class="ghk-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people me-2"></i>Family Members</span>
+                <a href="{% url 'add_dependent' %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                    <i class="bi bi-plus-lg"></i> Add
+                </a>
+            </div>
+            <div class="card-body">
+                {% if dependents %}
+                <div class="list-group list-group-flush mb-0">
+                    {% for dep in dependents %}
+                    <div class="list-group-item px-0 py-3 d-flex align-items-center gap-3 border-secondary-subtle">
+                        <div style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#1a4f8a;font-weight:700;font-size:16px;flex-shrink:0;border:2px solid #e2e8f0;">
+                            {{ dep.name|first|upper }}
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;font-size:14px;color:#1e293b;">{{ dep.name }}</div>
+                            <div style="font-size:12px;color:#64748b;">{{ dep.get_relation_display }}</div>
+                        </div>
+                        <a href="{% url 'delete_dependent' dep.pk %}" class="text-danger" title="Remove" onclick="return confirm('Remove this member?')">
+                            <i class="bi bi-x-circle"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-people-fill opacity-25" style="font-size:40px;display:block;margin-bottom:10px;"></i>
+                    <p class="small">No family members registered.</p>
+                    <a href="{% url 'add_dependent' %}" class="btn btn-sm btn-link text-decoration-none">Add Member Now</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

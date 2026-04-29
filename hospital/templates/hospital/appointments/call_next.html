@@ -1,0 +1,103 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Doctor Queue{% endblock %}
+{% block page_title %}<i class="bi bi-megaphone me-2"></i>Live Patient Queue{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Current Patient Being Seen -->
+    <div class="col-lg-5">
+        <div style="background:linear-gradient(135deg,#065f46,#059669);border-radius:20px;padding:32px;color:white;text-align:center;height:100%;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;right:-20px;font-size:120px;opacity:0.07;"><i class="bi bi-person-check"></i></div>
+            <p style="font-size:12px;opacity:0.7;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;">Now Seeing</p>
+
+            {% if current %}
+            <div style="width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;animation:pulse-green 1.5s infinite;">
+                <span style="font-size:36px;font-weight:900;">{{ current.token_number }}</span>
+            </div>
+            <h3 style="font-weight:800;margin-bottom:4px;">{{ current.patient_display_name }}</h3>
+            {% if current.dependent %}<p style="opacity:0.65;font-size:13px;margin:0 0 8px;">Dependent of {{ current.patient.display_name }}</p>{% endif %}
+            <p style="opacity:0.65;font-size:13px;margin:0 0 20px;">{{ current.chief_complaint|default:"No complaint noted"|truncatechars:60 }}</p>
+            <a href="{% url 'prescribe' current.pk %}" class="btn btn-light fw-bold px-4" style="border-radius:20px;">
+                <i class="bi bi-prescription2 me-2"></i>Write Prescription
+            </a>
+            {% else %}
+            <div style="opacity:0.5;margin:30px 0;">
+                <i class="bi bi-person-dash" style="font-size:48px;display:block;margin-bottom:12px;"></i>
+                No patient currently in session
+            </div>
+            {% endif %}
+
+            <!-- Call Next Button -->
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.15);">
+                <form method="post" action="{% url 'call_next' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning fw-bold px-5 py-2" style="border-radius:20px;font-size:15px;">
+                        <i class="bi bi-megaphone me-2"></i>Call Next Patient
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting Queue -->
+    <div class="col-lg-7">
+        <div class="ghk-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-list-ol me-2"></i>Waiting Queue
+                    <span class="badge ms-2" style="background:#dbeafe;color:#1a4f8a;">{{ waiting|length }} waiting</span>
+                </span>
+                <span style="font-size:13px;color:#94a3b8;"><i class="bi bi-calendar3 me-1"></i>{{ today }}</span>
+            </div>
+            <div class="card-body p-0" style="max-height:520px;overflow-y:auto;">
+                {% if waiting %}
+                {% for appt in waiting %}
+                <div class="d-flex align-items-center gap-3 p-3" style="border-bottom:1px solid #f1f5f9;{% if forloop.first %}background:#fffbeb;{% endif %}">
+                    <!-- Token -->
+                    <div style="width:48px;height:48px;border-radius:50%;
+                         background:{% if forloop.first %}linear-gradient(135deg,#f59e0b,#d97706){% else %}linear-gradient(135deg,#1a4f8a,#0d6efd){% endif %};
+                         display:flex;align-items:center;justify-content:center;
+                         color:white;font-size:17px;font-weight:800;flex-shrink:0;">
+                        {{ appt.token_number }}
+                    </div>
+                    <!-- Info -->
+                    <div style="flex:1;">
+                        <div style="font-weight:700;font-size:15px;color:#1e293b;">{{ appt.patient_display_name }}</div>
+                        {% if appt.dependent %}<span class="badge bg-warning text-dark me-1" style="font-size:10px;">Dep.</span>{% endif %}
+                        <span style="font-size:12px;color:#64748b;">{{ appt.chief_complaint|default:"No complaint noted"|truncatechars:45 }}</span>
+                    </div>
+                    <!-- Booked time -->
+                    <div style="text-align:right;flex-shrink:0;">
+                        <div style="font-size:12px;color:#94a3b8;">Booked</div>
+                        <div style="font-size:13px;font-weight:600;color:#64748b;">{{ appt.booking_time|date:"H:i" }}</div>
+                    </div>
+                    {% if forloop.first %}
+                    <span class="badge bg-warning text-dark ms-2" style="font-size:11px;">Next</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-5" style="color:#94a3b8;">
+                    <i class="bi bi-check-circle-fill" style="font-size:48px;display:block;margin-bottom:12px;color:#198754;"></i>
+                    <strong style="color:#198754;">Queue is clear!</strong><br>
+                    <span style="font-size:13px;">No patients waiting.</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes pulse-green {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+    50%      { box-shadow: 0 0 0 16px rgba(255,255,255,0); }
+}
+</style>
+
+{% block extra_js %}
+<script>
+// Auto-refresh queue every 20 seconds
+setTimeout(() => location.reload(), 20000);
+</script>
+{% endblock %}
+{% endblock %}

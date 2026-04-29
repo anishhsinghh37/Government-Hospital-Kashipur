@@ -1,0 +1,68 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Add Medicine{% endblock %}
+{% block page_title %}<i class="bi bi-plus-circle me-2"></i>Add Medicine to Inventory{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="ghk-card">
+            <div class="card-header"><i class="bi bi-capsule me-2"></i>New Medicine Entry</div>
+            <div class="card-body p-4">
+                <div class="alert alert-info d-flex gap-2 align-items-start" style="border-radius:12px;border:none;background:#eff6ff;font-size:13px;">
+                    <i class="bi bi-shield-check text-primary mt-1"></i>
+                    <div>Every addition is recorded in the <strong>Stock Audit Log</strong> with your name, timestamp, and reason.</div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Medicine Name <span class="text-danger">*</span></label>
+                            {{ form.medicine_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Generic / Salt Name</label>
+                            {{ form.generic_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Batch Number <span class="text-danger">*</span></label>
+                            {{ form.batch_number }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Unit</label>
+                            {{ form.unit }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Manufacturing Date <span class="text-danger">*</span></label>
+                            {{ form.mfg_date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Expiry Date <span class="text-danger">*</span></label>
+                            {{ form.expiry_date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Total Quantity <span class="text-danger">*</span></label>
+                            {{ form.total_quantity }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Shelf Location</label>
+                            {{ form.shelf_location }}
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-ghk-primary py-3" style="font-size:15px;">
+                            <i class="bi bi-plus-circle me-2"></i>Add Medicine &amp; Record in Audit Log
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{% url 'inventory_list' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-1"></i>Back to Inventory
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

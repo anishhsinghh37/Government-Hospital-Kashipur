@@ -1,0 +1,217 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Prescribe — Token #{{ appointment.token_number }}{% endblock %}
+{% block page_title %}<i class="bi bi-prescription2 me-2"></i>Write Prescription{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Prescription Form -->
+    <div class="col-lg-6">
+        <div class="ghk-card mb-4">
+            <div class="card-header">
+                <i class="bi bi-person-heart me-2"></i>
+                Patient: <strong>{{ appointment.patient_display_name }}</strong>
+                &nbsp;·&nbsp; Token <strong>#{{ appointment.token_number }}</strong>
+                &nbsp;·&nbsp; {{ appointment.date }}
+            </div>
+            <div class="card-body p-4">
+
+                <!-- Medicine Search (3-letter autocomplete) -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:13px;">
+                        <i class="bi bi-search me-1"></i>Search Medicine (type 3+ characters)
+                    </label>
+                    <div style="position:relative;">
+                        <input type="text" id="med-search" class="form-control"
+                               placeholder="e.g., Par, Amox, Ibu..."
+                               autocomplete="off">
+                        <div id="med-dropdown" class="autocomplete-results" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <form method="post" id="prescribe-form">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Medicine <span class="text-danger">*</span></label>
+                        {{ form.medicine }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Dosage Instructions <span class="text-danger">*</span></label>
+                        {{ form.dosage }}
+                        <div class="form-text">e.g., "1 tablet twice daily after food"</div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Quantity</label>
+                            {{ form.quantity_prescribed }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Duration (Days)</label>
+                            {{ form.duration_days }}
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Additional Instructions</label>
+                        {{ form.instructions }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold" style="font-size:13px;">
+                            <i class="bi bi-calendar-event me-1"></i>Recommended Next Visit Date
+                        </label>
+                        {{ form.next_visit_date }}
+                    </div>
+
+                    <button type="submit" class="btn btn-ghk-primary w-100 py-2">
+                        <i class="bi bi-plus-circle me-2"></i>Add Medicine to Prescription
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Existing Prescriptions -->
+    <div class="col-lg-6">
+        <div class="ghk-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-capsule me-2"></i>Current Prescription</span>
+                <span class="badge" style="background:#dbeafe;color:#1a4f8a;">{{ existing_prescriptions|length }} item(s)</span>
+            </div>
+            <div class="card-body p-0">
+                {% if existing_prescriptions %}
+                {% for rx in existing_prescriptions %}
+                <div class="p-3" style="border-bottom:1px solid #f1f5f9;">
+                    <div class="d-flex align-items-start justify-content-between gap-2">
+                        <div style="flex:1;">
+                            <div style="font-weight:700;font-size:15px;color:#1e293b;">{{ rx.medicine.medicine_name }}</div>
+                            <div style="font-size:12px;color:#64748b;margin-top:2px;">{{ rx.dosage }}</div>
+                            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">
+                                {{ rx.quantity_prescribed }} {{ rx.medicine.get_unit_display }} · {{ rx.duration_days }} days
+                            </div>
+                            {% if rx.instructions %}
+                            <div style="font-size:12px;color:#64748b;margin-top:4px;font-style:italic;">{{ rx.instructions }}</div>
+                            {% endif %}
+                        </div>
+                        <!-- Stock Status Badge -->
+                        <div style="flex-shrink:0;text-align:right;">
+                            {% if rx.stock_status == 'FREE_IN_STOCK' %}
+                            <span class="badge px-3 py-2" style="background:#d1fae5;color:#065f46;border-radius:20px;font-size:12px;">
+                                ✅ FREE — In Stock
+                            </span>
+                            {% elif rx.stock_status == 'OUT_OF_STOCK' %}
+                            <span class="badge px-3 py-2" style="background:#fee2e2;color:#dc3545;border-radius:20px;font-size:12px;">
+                                ❌ Out of Stock<br>
+                                <small>Purchase Outside</small>
+                            </span>
+                            {% elif rx.stock_status == 'EXPIRED' %}
+                            <span class="badge px-3 py-2" style="background:#fef3c7;color:#92400e;border-radius:20px;font-size:12px;">
+                                ⚠️ Expired Batch
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Summary -->
+                <div class="p-3" style="background:#f8fafc;">
+                    <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;">Prescription Summary</div>
+                    <div class="row g-2">
+                        <div class="col-4 text-center">
+                            <div style="font-size:20px;font-weight:800;color:#198754;">
+                                {{ existing_prescriptions|length }}
+                            </div>
+                            <div style="font-size:11px;color:#64748b;">Total Medicines</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div style="font-size:20px;font-weight:800;color:#198754;">
+                                {% with free=0 %}
+                                {% for rx in existing_prescriptions %}{% if rx.stock_status == 'FREE_IN_STOCK' %}
+                                {% with free=free|add:1 %}{% endwith %}{% endif %}{% endfor %}
+                                {{ existing_prescriptions|length }}
+                                {% endwith %}
+                            </div>
+                            <div style="font-size:11px;color:#64748b;">Free from Hospital</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div style="font-size:20px;font-weight:800;color:#dc3545;">
+                                {% for rx in existing_prescriptions %}{% if rx.stock_status == 'OUT_OF_STOCK' %}1{% endif %}{% endfor %}
+                            </div>
+                            <div style="font-size:11px;color:#64748b;">Purchase Outside</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-5" style="color:#94a3b8;">
+                    <i class="bi bi-prescription2" style="font-size:40px;display:block;margin-bottom:12px;"></i>
+                    No medicines prescribed yet.<br>
+                    <span style="font-size:13px;">Add medicines using the form.</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if existing_prescriptions %}
+        <div class="mt-3 d-grid">
+            <a href="{% url 'appointment_detail' appointment.pk %}" class="btn btn-success py-2" style="border-radius:12px;">
+                <i class="bi bi-check2-all me-2"></i>Done — View Full Appointment
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 3-letter autocomplete for medicine search
+const input    = document.getElementById('med-search');
+const dropdown = document.getElementById('med-dropdown');
+const select   = document.getElementById('medicine-select') || document.querySelector('[name="medicine"]');
+
+let timer;
+input.addEventListener('input', function () {
+    clearTimeout(timer);
+    const q = this.value.trim();
+    if (q.length < 3) { dropdown.style.display = 'none'; return; }
+    timer = setTimeout(() => search(q), 300);
+});
+
+async function search(q) {
+    const res  = await fetch(`{% url 'medicine_autocomplete' %}?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if (!data.results.length) {
+        dropdown.innerHTML = '<div class="autocomplete-item" style="color:#94a3b8;justify-content:center;">No medicines found</div>';
+        dropdown.style.display = 'block'; return;
+    }
+    dropdown.innerHTML = data.results.map(m => `
+        <div class="autocomplete-item" onclick="pick(${m.id}, '${m.name.replace(/'/g,"\\'")}')">
+            <div>
+                <div style="font-size:14px;font-weight:600;">${m.name}</div>
+                <div style="font-size:11px;color:#64748b;">${m.generic || '—'}</div>
+            </div>
+            <span class="badge px-2 py-1"
+                  style="font-size:11px;${m.is_expired ? 'background:#fef3c7;color:#92400e;' : m.in_stock ? 'background:#d1fae5;color:#065f46;' : 'background:#fee2e2;color:#dc3545;'}">
+                ${m.status_label} (${m.qty})
+            </span>
+        </div>
+    `).join('');
+    dropdown.style.display = 'block';
+}
+
+function pick(id, name) {
+    // Set the select value
+    if (select) {
+        for (let opt of select.options) {
+            if (opt.value == id) { opt.selected = true; break; }
+        }
+    }
+    input.value = name;
+    dropdown.style.display = 'none';
+}
+
+document.addEventListener('click', e => {
+    if (!input.contains(e.target)) dropdown.style.display = 'none';
+});
+</script>
+{% endblock %}

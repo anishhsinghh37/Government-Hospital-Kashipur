@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Government Hospital Kashipur — Hospital Management System">
+    <title>{% block title %}GHK Hospital{% endblock %} | Government Hospital Kashipur</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ghk-primary:   #1a4f8a;
+            --ghk-secondary: #0d6efd;
+            --ghk-accent:    #e84393;
+            --ghk-success:   #198754;
+            --ghk-danger:    #dc3545;
+            --ghk-warning:   #ffc107;
+            --ghk-bg:        #f0f4f8;
+            --ghk-sidebar:   #0a2a52;
+            --ghk-card:      #ffffff;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--ghk-bg);
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* ── Sidebar ──────────────────────── */
+        .sidebar {
+            position: fixed; top: 0; left: 0;
+            width: var(--sidebar-width); height: 100vh;
+            background: var(--ghk-sidebar);
+            display: flex; flex-direction: column;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-brand .hospital-name {
+            font-size: 14px; font-weight: 700;
+            color: #ffffff; line-height: 1.3;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .sidebar-brand .hospital-sub {
+            font-size: 11px; color: rgba(255,255,255,0.5);
+            font-weight: 400; margin-top: 2px;
+        }
+        .sidebar-brand .ghk-badge {
+            display: inline-block;
+            background: var(--ghk-accent);
+            color: white; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 20px; margin-bottom: 8px;
+        }
+
+        .sidebar-nav { padding: 12px 0; flex: 1; }
+        .sidebar-nav .nav-section {
+            font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35);
+            text-transform: uppercase; letter-spacing: 1.5px;
+            padding: 16px 20px 6px;
+        }
+        .sidebar-nav .nav-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 20px; color: rgba(255,255,255,0.7);
+            font-size: 14px; font-weight: 500;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active {
+            color: #ffffff;
+            background: rgba(255,255,255,0.08);
+            border-left-color: var(--ghk-accent);
+        }
+        .sidebar-nav .nav-link i { font-size: 18px; width: 22px; }
+
+        .sidebar-user {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .sidebar-user .avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--ghk-accent), var(--ghk-secondary));
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: white; font-size: 15px; flex-shrink: 0;
+        }
+        .sidebar-user .user-info .name {
+            font-size: 13px; font-weight: 600; color: #fff; line-height: 1.2;
+        }
+        .sidebar-user .user-info .role {
+            font-size: 11px; color: rgba(255,255,255,0.5);
+        }
+
+        /* ── Main Content ─────────────────── */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 14px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .top-bar .page-title {
+            font-size: 18px; font-weight: 700; color: var(--ghk-primary);
+        }
+        .top-bar .top-actions { display: flex; align-items: center; gap: 12px; }
+
+        .session-timer {
+            font-size: 12px; color: #6c757d;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .session-timer #timer { font-weight: 700; color: var(--ghk-danger); }
+
+        .content-area { padding: 28px; flex: 1; }
+
+        /* ── Cards ────────────────────────── */
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            height: 100%;
+            border: none;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative; overflow: hidden;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+        .stat-card .stat-icon {
+            width: 52px; height: 52px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; margin-bottom: 16px;
+        }
+        .stat-card .stat-value { font-size: 32px; font-weight: 800; color: #1e293b; line-height: 1; }
+        .stat-card .stat-label { font-size: 13px; color: #64748b; font-weight: 500; margin-top: 4px; }
+        .stat-card .stat-bg {
+            position: absolute; right: -16px; bottom: -16px;
+            font-size: 80px; opacity: 0.06;
+        }
+
+        .ghk-card {
+            background: white; border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            border: none;
+        }
+        .ghk-card .card-header {
+            background: none; border-bottom: 1px solid #f0f4f8;
+            padding: 18px 22px; font-weight: 700; font-size: 15px; color: var(--ghk-primary);
+        }
+
+        /* ── Token Badge ──────────────────── */
+        .token-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 52px; height: 52px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--ghk-primary), var(--ghk-secondary));
+            color: white; font-size: 18px; font-weight: 800;
+            box-shadow: 0 4px 12px rgba(26,79,138,0.3);
+        }
+        .token-badge.current {
+            background: linear-gradient(135deg, #198754, #20c997);
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 4px 16px rgba(25,135,84,0.4);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.08); }
+        }
+        @keyframes pulse-red {
+            0%   { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); transform: scale(1); }
+            70%  { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); transform: scale(1.05); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); transform: scale(1); }
+        }
+
+        /* ── Urgency Badges ───────────────── */
+        .urgency-red    { background: #dc3545; color: white; }
+        .urgency-yellow { background: #ffc107; color: #000; }
+        .urgency-green  { background: #198754; color: white; }
+
+        /* ── Stock Badges ─────────────────── */
+        .stock-in    { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .stock-out   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .stock-warn  { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+        /* ── Buttons ──────────────────────── */
+        .btn-ghk-primary {
+            background: var(--ghk-primary); color: white; border: none;
+            font-weight: 600; border-radius: 10px; padding: 10px 22px;
+            transition: all 0.2s;
+        }
+        .btn-ghk-primary:hover { background: #1e5fa8; color: white; transform: translateY(-1px); }
+
+        /* ── Tables ───────────────────────── */
+        .ghk-table { font-size: 14px; }
+        .ghk-table th { background: #f8fafc; font-weight: 600; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ghk-table tbody tr:hover { background: #f8fafc; }
+
+        /* ── Alerts ───────────────────────── */
+        .alert { border-radius: 12px; border: none; }
+
+        /* ── Responsive ───────────────────── */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
+        }
+
+        /* ── Form controls ────────────────── */
+        .form-control, .form-select {
+            border-radius: 10px; border: 1.5px solid #e2e8f0;
+            font-size: 14px; padding: 10px 14px;
+            transition: all 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--ghk-primary);
+            box-shadow: 0 0 0 3px rgba(26,79,138,0.1);
+        }
+
+        /* ── Autocomplete Dropdown ─────────── */
+        .autocomplete-results {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 9999;
+            background: white; border-radius: 0 0 12px 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            max-height: 300px; overflow-y: auto;
+        }
+        .autocomplete-item {
+            padding: 10px 16px; cursor: pointer; display: flex;
+            align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #f1f5f9; transition: background 0.15s;
+        }
+        .autocomplete-item:hover { background: #f8fafc; }
+        .autocomplete-item:last-child { border-bottom: none; }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<!-- ── Sidebar ──────────────────────────────────── -->
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <div class="ghk-badge">GOV. HOSPITAL</div>
+        <div class="hospital-name">Kashipur<br>Medical Centre</div>
+        <div class="hospital-sub">Uttarakhand Government</div>
+    </div>
+
+    {% if user.role == 'ADMIN' %}
+    <!-- Staff Availability Widget -->
+    <div class="px-3 mt-3 mb-2">
+        <div class="p-3 rounded-3 bg-dark-subtle" style="background: rgba(0,0,0,0.2) !important;">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-white-50 fw-bold">LIVE STAFF</span>
+                <span class="badge bg-success" style="font-size: 10px;">{{ global_staff_available|default:0 }} ONLINE</span>
+            </div>
+            <div class="progress" style="height: 4px; background: rgba(255,255,255,0.1);">
+                <div class="progress-bar bg-success" style="width: 70%;"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+                <span class="text-white-50" style="font-size: 11px;">Offline: <strong>{{ global_staff_offline|default:0 }}</strong></span>
+                <a href="{% url 'staff_availability' %}" class="text-info text-decoration-none" style="font-size: 11px;">View All</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+
+        {% if user.role == 'PATIENT' %}
+        <div class="nav-section">Patient Dashboard</div>
+        <a href="{% url 'book_appointment' %}" class="nav-link"><i class="bi bi-calendar-plus"></i> Book Appointment</a>
+        <a href="{% url 'add_dependent' %}" class="nav-link"><i class="bi bi-people"></i> Add Family Member</a>
+        
+        <div class="nav-section">MEDICAL RECORDS</div>
+        <a href="{% url 'ehr_dashboard' %}" class="nav-link"><i class="bi bi-file-earmark-medical"></i> My Reports & EHR</a>
+
+        <div class="nav-section">PHARMACY</div>
+        <a href="{% url 'medicine_availability' %}" class="nav-link"><i class="bi bi-capsule"></i> Medicine Availability</a>
+
+        <div class="nav-section">Support</div>
+        <a href="{% url 'submit_feedback' %}" class="nav-link {% if request.resolver_match.url_name == 'submit_feedback' %}active{% endif %}">
+            <i class="bi bi-chat-text"></i> Feedback / Complaint
+        </a>
+        <a href="{% url 'feedback_inbox' %}" class="nav-link {% if request.resolver_match.url_name == 'feedback_inbox' %}active{% endif %}">
+            <i class="bi bi-reply-all"></i> My Inquiries/Replies
+        </a>
+        {% endif %}
+
+        {% if user.role == 'DOCTOR' %}
+        <div class="nav-section">Doctor Portal</div>
+        
+        <!-- Availability Toggle -->
+        <div class="px-3 mb-3">
+            <form action="{% url 'toggle_availability' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm w-100 d-flex align-items-center justify-content-between px-3 py-2 rounded-3" 
+                        style="background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                    <span class="small fw-bold">STATUS</span>
+                    {% if user.is_available %}
+                    <span class="badge bg-success">ACTIVE 🟢</span>
+                    {% else %}
+                    <span class="badge bg-danger">ON BREAK 🔴</span>
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+
+        <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        
+        <!-- Critical Inbox -->
+        <a href="{% url 'doctor_queue' %}" class="nav-link">
+            <i class="bi bi-bell{% if critical_report_count %} text-danger-emphasis{% endif %}"></i> 
+            Critical Inbox
+            {% if critical_report_count %}
+            <span class="badge bg-danger ms-auto animate-pulse" style="animation: pulse-red 1s infinite;">{{ critical_report_count }}</span>
+            {% endif %}
+        </a>
+
+        <a href="{% url 'doctor_queue' %}" class="nav-link"><i class="bi bi-list-ol"></i> Live Queue</a>
+        <a href="{% url 'ehr_search' %}" class="nav-link"><i class="bi bi-search"></i> EHR Search</a>
+        <a href="{% url 'medicine_availability' %}" class="nav-link"><i class="bi bi-capsule"></i> Medicine Stock</a>
+        
+        <div class="nav-section">Account</div>
+        <a href="{% url 'my_profile' %}" class="nav-link"><i class="bi bi-gear"></i> Account Settings</a>
+        {% endif %}
+
+        {% if user.role == 'PHARMACIST' %}
+        <div class="nav-section">Pharmacy</div>
+        <a href="{% url 'inventory_list' %}" class="nav-link {% if request.path == '/pharmacy/inventory/' %}active{% endif %}"><i class="bi bi-capsule"></i> Medicine Inventory</a>
+        <a href="{% url 'add_medicine' %}" class="nav-link"><i class="bi bi-plus-circle"></i> Add Medicine</a>
+        <a href="{% url 'audit_log' %}" class="nav-link {% if request.path == '/pharmacy/audit-log/' %}active{% endif %}"><i class="bi bi-journal-text"></i> Stock Audit Log</a>
+        {% endif %}
+
+        {% if user.role == 'RECEPTIONIST' or user.role == 'ADMIN' %}
+        <div class="nav-section">Management</div>
+        <a href="{% url 'feedback_dashboard' %}" class="nav-link {% if request.path == '/feedback/dashboard/' %}active{% endif %}"><i class="bi bi-inbox"></i> Feedback Dashboard</a>
+        {% endif %}
+
+        {% if user.role == 'ADMIN' %}
+        <a href="{% url 'direct_staff_registration' %}" class="nav-link {% if request.path == '/admin-panel/staff/register/' %}active{% endif %}"><i class="bi bi-person-plus"></i> Register New Staff</a>
+        <a href="{% url 'staff_availability' %}" class="nav-link {% if request.path == '/admin-panel/staff/availability/' %}active{% endif %}"><i class="bi bi-people"></i> Staff Directory</a>
+        <a href="{% url 'all_patient_records' %}" class="nav-link {% if request.path == '/admin-panel/patients/' %}active{% endif %}"><i class="bi bi-person-lines-fill"></i> All Patient Records</a>
+        {% if user.role != 'PHARMACIST' %}
+        <a href="{% url 'inventory_list' %}" class="nav-link {% if request.path == '/pharmacy/inventory/' %}active{% endif %}"><i class="bi bi-capsule"></i> Medicine Inventory</a>
+        <a href="{% url 'audit_log' %}" class="nav-link {% if request.path == '/pharmacy/audit-log/' %}active{% endif %}"><i class="bi bi-shield-check"></i> Stock Audit Log</a>
+        {% endif %}
+        {% endif %}
+
+        <div class="nav-section">Account</div>
+        <a href="{% url 'logout' %}" class="nav-link"><i class="bi bi-box-arrow-left"></i> Logout</a>
+    </div>
+
+    <div class="sidebar-user">
+        <div class="avatar">{{ user.display_name|first|upper }}</div>
+        <div class="user-info">
+            <div class="name">{{ user.display_name }}</div>
+            <div class="role">{{ user.get_role_display }}</div>
+        </div>
+    </div>
+</nav>
+
+<!-- ── Main Content ──────────────────────────────── -->
+<div class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
+        <div class="top-actions">
+            {% if user.is_staff_role %}
+            <a href="{% url 'my_profile' %}" class="btn btn-sm btn-light border rounded-pill me-2">
+                <i class="bi bi-person-circle me-1"></i>My Profile
+            </a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger rounded-pill">
+                <i class="bi bi-box-arrow-left me-1"></i>Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div style="padding: 0 28px; margin-top: 16px;">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+            {% if message.tags == 'error' %}<i class="bi bi-exclamation-triangle-fill"></i>
+            {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-circle-fill"></i>
+            {% elif message.tags == 'success' %}<i class="bi bi-check-circle-fill"></i>
+            {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+            {{ message }}
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Page Content -->
+    <div class="content-area">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer style="text-align:center; padding: 16px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; background: white; margin-top: auto;">
+        © 2024 Government Hospital Kashipur, Uttarakhand | Powered by HMS
+    </footer>
+</div>
+
+{% else %}
+<!-- Unauthenticated layout -->
+<div class="min-vh-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #0a2a52 0%, #1a4f8a 60%, #0d6efd 100%);">
+    {% block auth_content %}{% endblock %}
+</div>
+{% endif %}
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

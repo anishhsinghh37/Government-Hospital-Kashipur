@@ -1,0 +1,287 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Consultation: {{ appt.patient_display_name }}{% endblock %}
+{% block page_title %}<i class="bi bi-person-pulse me-2"></i>Active Consultation{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Left Column: Patient Details & Vitals -->
+    <div class="col-lg-4">
+        <div class="ghk-card mb-4" style="border-top: 4px solid var(--ghk-primary);">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="token-badge current">{{ appt.token_number }}</div>
+                    <div>
+                        <h4 class="mb-0 fw-bold text-primary">{{ appt.patient_display_name }}</h4>
+                        <span class="badge bg-light text-muted border">ID: #{{ appt.patient.id }}</span>
+                        {% if appt.dependent %}
+                        <span class="badge bg-warning text-dark">Dependent ({{ appt.dependent.relation }})</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="small text-muted fw-bold mb-2">CHIEF COMPLAINT</div>
+                    <div class="p-3 bg-light rounded-3" style="font-size: 14px; border-left: 3px solid #cbd5e1;">
+                        {{ appt.chief_complaint|default:"No complaint recorded." }}
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Vitals Recording -->
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-thermometer-half me-2"></i>Patient Vitals</h6>
+                    {% if appt.vitals %}
+                    <span class="badge bg-success-subtle text-success">Recorded</span>
+                    {% endif %}
+                </div>
+                
+                <form method="POST" class="mt-3">
+                    {% csrf_token %}
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold mb-1">Weight (kg)</label>
+                            {{ v_form.weight }}
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold mb-1">Temp (°F)</label>
+                            {{ v_form.temperature }}
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold mb-1">BP Systolic</label>
+                            {{ v_form.bp_systolic }}
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold mb-1">BP Diastolic</label>
+                            {{ v_form.bp_diastolic }}
+                        </div>
+                    </div>
+                    <button type="submit" name="vitals_submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
+                        <i class="bi bi-save me-2"></i>Save Vitals
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Vitals Trends Table -->
+        <div class="ghk-card">
+            <div class="card-header"><i class="bi bi-graph-up me-2"></i>Vitals History</div>
+            <div class="card-body p-0">
+                <table class="table table-sm ghk-table mb-0">
+                    <thead class="small bg-light">
+                        <tr><th>Date</th><th>Wt</th><th>BP</th><th>Temp</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for v in vitals_history %}
+                        <tr>
+                            <td class="small">{{ v.recorded_at|date:"d M" }}</td>
+                            <td>{{ v.weight }}</td>
+                            <td>{{ v.blood_pressure }}</td>
+                            <td>{{ v.temperature }}°</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-3 small">No history found</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Consultation area (White background as requested) -->
+    <div class="col-lg-8">
+        <div class="p-4 rounded-4 shadow-sm" style="background: #ffffff; border: 1px solid #e2e8f0;">
+            <ul class="nav nav-tabs mb-4 border-0 bg-light p-1 rounded-pill" id="consultationTabs" role="tablist">
+                <li class="nav-item flex-fill" role="presentation">
+                    <button class="nav-link active rounded-pill fw-bold" id="prescription-tab" data-bs-toggle="tab" data-bs-target="#prescription" type="button">
+                        <i class="bi bi-prescription2 me-2"></i>Prescription Pad
+                    </button>
+                </li>
+                <li class="nav-item flex-fill" role="presentation">
+                    <button class="nav-link rounded-pill fw-bold" id="ehr-tab" data-bs-toggle="tab" data-bs-target="#ehr" type="button">
+                        <i class="bi bi-file-earmark-medical me-2"></i>Patient EHR
+                    </button>
+                </li>
+                <li class="nav-item flex-fill" role="presentation">
+                    <button class="nav-link rounded-pill fw-bold" id="labs-tab" data-bs-toggle="tab" data-bs-target="#labs" type="button">
+                        <i class="bi bi-flask me-2"></i>Lab Orders
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="consultationTabsContent">
+                <!-- Tab 1: Prescription Pad -->
+                <div class="tab-pane fade show active" id="prescription" role="tabpanel">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="fw-bold mb-2">Medicine Inventory Search</label>
+                            <div class="position-relative">
+                                {{ p_form.medicine }}
+                                <div id="stock-hint" class="small text-muted mt-1"></div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="small fw-bold mb-1">Dosage (e.g. 1-0-1)</label>
+                                {{ p_form.dosage }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold mb-1">Quantity</label>
+                                {{ p_form.quantity_prescribed }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold mb-1">Duration (Days)</label>
+                                {{ p_form.duration_days }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="small fw-bold mb-1">Special Instructions</label>
+                            {{ p_form.instructions }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="small fw-bold mb-1">
+                                <i class="bi bi-calendar-event me-1"></i>Recommended Next Visit Date
+                            </label>
+                            {{ p_form.next_visit_date }}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="mb-4">
+                            <label class="fw-bold mb-2 text-primary"><i class="bi bi-chat-left-dots me-2"></i>Doctor Advice</label>
+                            <textarea name="doctor_advice" class="form-control" rows="4" placeholder="Enter clinical advice, precautions, or follow-up details...">{{ appt.doctor_advice }}</textarea>
+                        </div>
+
+                        <button type="submit" name="prescription_submit" class="btn btn-success btn-lg px-5 rounded-pill fw-bold">
+                            <i class="bi bi-printer me-2"></i>FINALIZE & PRESCRIBE
+                        </button>
+                    </form>
+
+                    <!-- Existing prescriptions for this session -->
+                    {% if appt.prescriptions.all %}
+                    <div class="mt-5">
+                        <h6 class="fw-bold border-bottom pb-2 mb-3">CURRENT PRESCRIPTIONS</h6>
+                        <div class="list-group list-group-flush">
+                            {% for p in appt.prescriptions.all %}
+                            <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold">{{ p.medicine.medicine_name }}</div>
+                                    <div class="small text-muted">{{ p.dosage }} for {{ p.duration_days }} days</div>
+                                </div>
+                                <span class="badge {% if p.stock_status == 'FREE_IN_STOCK' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %}">
+                                    {{ p.get_stock_status_display }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab 2: EHR Access (Lab Reports & Past History) -->
+                <div class="tab-pane fade" id="ehr" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3 text-danger"><i class="bi bi-file-earmark-pdf me-2"></i>LAB REPORTS</h6>
+                            <div class="list-group list-group-flush border rounded-3 overflow-hidden">
+                                {% for report in lab_reports %}
+                                <a href="{{ report.file.url }}" target="_blank" class="list-group-item list-group-item-action py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="fw-bold small">{{ report.title }}</div>
+                                        <i class="bi bi-download text-primary"></i>
+                                    </div>
+                                    <div class="text-muted small" style="font-size: 11px;">{{ report.record_date }}</div>
+                                </a>
+                                {% empty %}
+                                <div class="p-4 text-center text-muted small">No lab reports found.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3 text-info"><i class="bi bi-archive me-2"></i>PAST HISTORY</h6>
+                            <div class="list-group list-group-flush border rounded-3 overflow-hidden">
+                                {% for history in past_history %}
+                                <a href="{{ history.file.url }}" target="_blank" class="list-group-item list-group-item-action py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="fw-bold small">{{ history.title }}</div>
+                                        <i class="bi bi-download text-primary"></i>
+                                    </div>
+                                    <div class="text-muted small" style="font-size: 11px;">{{ history.record_date }}</div>
+                                </a>
+                                {% empty %}
+                                <div class="p-4 text-center text-muted small">No past history found.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Lab Orders -->
+                <div class="tab-pane fade" id="labs" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h6 class="fw-bold mb-3">REQUEST NEW TEST</h6>
+                            <form action="{% url 'create_lab_order' appt.pk %}" method="POST" class="p-3 bg-light rounded-3">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    {{ lab_order_form.test_name }}
+                                </div>
+                                <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold">
+                                    <i class="bi bi-plus-lg me-2"></i>ORDER TEST
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-7">
+                            <h6 class="fw-bold mb-3">PENDING LAB ORDERS</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm ghk-table">
+                                    <thead><tr><th>Test</th><th>Status</th><th>Ordered On</th></tr></thead>
+                                    <tbody>
+                                        {% for order in appt.lab_orders.all %}
+                                        <tr>
+                                            <td class="fw-bold small">{{ order.test_name }}</td>
+                                            <td><span class="badge bg-warning-subtle text-warning">{{ order.status }}</span></td>
+                                            <td class="small">{{ order.created_at|date:"d M, H:i" }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr><td colspan="3" class="text-center py-4 text-muted small">No orders placed today.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 d-flex justify-content-between">
+            <a href="{% url 'dashboard' %}" class="btn btn-light rounded-pill px-4"><i class="bi bi-arrow-left me-2"></i>Back to Dashboard</a>
+            <form action="{% url 'call_next' %}" method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger rounded-pill px-4">Complete & Next <i class="bi bi-arrow-right ms-2"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Show stock hint when medicine is selected
+    document.getElementById('medicine-select').addEventListener('change', function() {
+        const option = this.options[this.selectedIndex];
+        const hint = document.getElementById('stock-hint');
+        if (option.value) {
+            // This would normally be an AJAX call, but for now we'll just show selection
+            hint.innerHTML = '<i class="bi bi-info-circle me-1"></i> Checking real-time stock levels...';
+        } else {
+            hint.innerHTML = '';
+        }
+    });
+</script>
+{% endblock %}

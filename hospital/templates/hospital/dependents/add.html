@@ -1,0 +1,55 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Add Family Member{% endblock %}
+{% block page_title %}<i class="bi bi-person-plus me-2"></i>Add Family Member{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="alert alert-info d-flex gap-2 align-items-start mb-4" style="border-radius:14px;border:none;background:#eff6ff;border-left:4px solid #0d6efd;">
+            <i class="bi bi-people-fill text-primary fs-5 mt-1"></i>
+            <div>
+                Add a dependent (family member) so you can book appointments on their behalf.
+                You can add your spouse, children, parents, or any relative.
+            </div>
+        </div>
+
+        <div class="ghk-card">
+            <div class="card-header"><i class="bi bi-person-plus me-2"></i>Dependent Details</div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Full Name <span class="text-danger">*</span></label>
+                        {{ form.name }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Date of Birth <span class="text-danger">*</span></label>
+                        {{ form.dob }}
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Relation <span class="text-danger">*</span></label>
+                            {{ form.relation }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold" style="font-size:13px;">Gender <span class="text-danger">*</span></label>
+                            {{ form.gender }}
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-ghk-primary py-2" style="font-size:15px;">
+                            <i class="bi bi-check-circle me-2"></i>Add Family Member
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

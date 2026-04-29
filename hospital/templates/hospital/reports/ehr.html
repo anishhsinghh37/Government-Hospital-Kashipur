@@ -1,0 +1,170 @@
+{% extends 'hospital/base.html' %}
+
+{% block title %}My Reports & EHR{% endblock %}
+{% block page_title %}Electronic Health Records (EHR){% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Recent Lab Reports -->
+    <div class="col-md-12">
+        <div class="ghk-card mb-4">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-file-earmark-medical me-2"></i>Recent Lab Reports</span>
+                <button type="button" class="btn btn-sm btn-ghk-primary" data-bs-toggle="modal" data-bs-target="#uploadReportModal">
+                    <i class="bi bi-plus-lg"></i> Upload New
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table ghk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Patient</th>
+                                <th>Title</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in lab_reports %}
+                            <tr>
+                                <td>{{ report.record_date|date:"d M Y" }}</td>
+                                <td>
+                                    {% if report.linked_member %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1" style="font-size:11px;">
+                                            {{ report.linked_member.name }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1" style="font-size:11px;">
+                                            Self
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ report.title }}</strong></td>
+                                <td>
+                                    <a href="{{ report.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> View/Download
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">No lab reports found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- All Lab Reports (Combined) -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="ghk-card">
+            <div class="card-header">
+                <i class="bi bi-journal-medical me-2"></i>View Lab Reports (Full History)
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table ghk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:150px;">Date</th>
+                                <th>Patient</th>
+                                <th>Title</th>
+                                <th style="width:150px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in all_records %}
+                            <tr>
+                                <td>{{ rec.record_date|date:"d M Y" }}</td>
+                                <td>
+                                    {% if rec.linked_member %}
+                                        <span class="fw-semibold">{{ rec.linked_member.name }}</span>
+                                        <div class="small text-muted">({{ rec.linked_member.get_relation_display }})</div>
+                                    {% else %}
+                                        <span class="fw-semibold">Self</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div><strong>{{ rec.title }}</strong></div>
+                                    <div class="small text-muted">{{ rec.get_category_display }}</div>
+                                </td>
+                                <td>
+                                    <a href="{{ rec.file.url }}" target="_blank" class="btn btn-sm btn-ghk-primary py-1">
+                                        <i class="bi bi-eye"></i> View/Download
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-5 text-muted">No documents found in your EHR.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Report Modal -->
+<div class="modal fade" id="uploadReportModal" tabindex="-1" aria-labelledby="uploadReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:15px; border:none; overflow:hidden;">
+            <div class="modal-header bg-ghk-primary text-white border-0">
+                <h5 class="modal-title" id="uploadReportModalLabel"><i class="bi bi-cloud-upload me-2"></i>Upload Lab Report</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Report For</label>
+                        {{ form.linked_member }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Report Title</label>
+                        {{ form.title }}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Category</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Date</label>
+                            {{ form.record_date }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select File</label>
+                        {{ form.file }}
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">Description (Optional)</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-ghk-primary px-4">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4 d-flex align-items-start gap-3">
+    <i class="bi bi-info-circle-fill fs-4"></i>
+    <div>
+        <h6 class="alert-heading fw-bold">About your EHR</h6>
+        <p class="mb-0 small opacity-75">Your Electronic Health Record (EHR) contains all reports generated at Kashipur Medical Centre and any documents you have uploaded manually. All your data is securely stored and accessible to your treating doctors during consultation.</p>
+    </div>
+</div>
+{% endblock %}

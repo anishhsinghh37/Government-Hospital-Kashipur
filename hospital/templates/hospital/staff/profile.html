@@ -1,0 +1,95 @@
+{% extends 'hospital/base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}<i class="bi bi-person-circle me-2"></i>My Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="ghk-card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="mb-0 fw-bold text-primary">Manage Your Information</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Full Name (Read-Only)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control bg-light border-start-0" value="{{ user.display_name }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Qualification (Read-Only)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-mortarboard"></i></span>
+                                <input type="text" class="form-control bg-light border-start-0" value="{{ user.doctor_profile.qualification|default:'N/A' }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Department (Read-Only)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-hospital"></i></span>
+                                <input type="text" class="form-control bg-light border-start-0" value="{{ department }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 opacity-50">
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Mobile Number</label>
+                            {{ form.mobile_no }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Alternative Mobile</label>
+                            {{ form.alt_mobile_no }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold">Residential Address</label>
+                            {{ form.address }}
+                        </div>
+                        
+                        <div class="col-md-12 mt-4">
+                            <div class="p-4 rounded-4 bg-light border border-dashed border-primary-subtle">
+                                <label class="form-label small fw-bold text-primary"><i class="bi bi-key me-2"></i>Security: Change Password</label>
+                                {{ form.new_password }}
+                                <div class="form-text mt-2" style="font-size: 11px; color: #64748b;">
+                                    <i class="bi bi-info-circle me-1"></i>Enter a new password ONLY if you wish to change it. Leave blank to keep your current password.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger mt-4 p-3 small">
+                        <ul class="mb-0">
+                        {% for field, errors in form.errors.items %}
+                            <li><strong>{{ field|title }}:</strong> {{ errors|striptags }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-5 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-ghk-primary px-5 py-2 shadow-sm">
+                            <i class="bi bi-save me-2"></i>Save Changes
+                        </button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-4 p-3 bg-white rounded-4 border-start border-4 border-primary shadow-sm">
+            <p class="mb-0 small text-muted">
+                <i class="bi bi-info-circle-fill me-2 text-primary"></i>
+                For security reasons, changes to your <strong>Name</strong> or <strong>Department</strong> must be requested through the Admin office.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

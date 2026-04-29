@@ -1,0 +1,127 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Doctor Dashboard{% endblock %}
+{% block page_title %}<i class="bi bi-person-badge me-2"></i>Doctor Dashboard{% endblock %}
+
+{% block content %}
+{% if not user.doctor_profile %}
+<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>Doctor profile not configured. Please contact Admin.</div>
+{% else %}
+
+<!-- Header & Progress -->
+<div style="background:linear-gradient(135deg,#0a2a52,#1a4f8a);border-radius:20px;padding:28px 32px;margin-bottom:28px;color:white;position:relative;overflow:hidden;">
+    <div style="position:absolute;right:-10px;bottom:-20px;font-size:100px;opacity:0.08;"><i class="bi bi-stethoscope"></i></div>
+    <div class="row align-items-center">
+        <div class="col-md-7">
+            <h2 style="font-weight:800; margin-bottom: 4px;">Dr. {{ user.display_name }}</h2>
+            <p style="opacity:0.8;font-size:14px;margin-bottom:16px;">{{ user.doctor_profile.specialization }} · {{ user.doctor_profile.department }}</p>
+            
+            <!-- Progress Bar -->
+            <div class="mb-2 d-flex justify-content-between align-items-end">
+                <span style="font-size: 13px; font-weight: 600; opacity: 0.9;">DAILY PROGRESS</span>
+                <span style="font-size: 12px; opacity: 0.7;">{{ seen_count }} Seen | {{ waiting_count }} Waiting</span>
+            </div>
+            <div class="progress" style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 20px;">
+                <div class="progress-bar bg-info" role="progressbar" style="width: {{ progress }}%; border-radius: 20px;" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+        <div class="col-md-5 text-md-end mt-4 mt-md-0">
+            {% if active_patient %}
+            <div class="p-3 rounded-4 bg-white text-dark d-inline-block text-start" style="min-width: 240px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+                <div class="small text-muted fw-bold mb-1">CURRENTLY IN ROOM</div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="token-badge current" style="width: 45px; height: 45px; font-size: 16px;">{{ active_patient.token_number }}</div>
+                    <div>
+                        <div class="fw-bold" style="font-size: 15px;">{{ active_patient.patient_display_name }}</div>
+                        <a href="{% url 'active_consultation' active_patient.pk %}" class="btn btn-primary btn-sm rounded-pill mt-1 py-0 px-3" style="font-size: 11px;">Continue</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <a href="{% url 'call_next' %}" class="btn btn-warning btn-lg px-5 rounded-pill fw-bold shadow-lg">
+                <i class="bi bi-megaphone me-2"></i>CALL NEXT
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#d1fae5;"><i class="bi bi-check-circle" style="color:#065f46;"></i></div>
+            <div class="stat-value text-success">{{ seen_count }}</div>
+            <div class="stat-label">Patients Seen</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#dbeafe;"><i class="bi bi-hourglass-split" style="color:#1a4f8a;"></i></div>
+            <div class="stat-value">{{ waiting_count }}</div>
+            <div class="stat-label">Waiting Patients</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fce7f3;"><i class="bi bi-person-lines-fill" style="color:#9d174d;"></i></div>
+            <div class="stat-value">{{ user.doctor_profile.max_patients_per_day }}</div>
+            <div class="stat-label">Max Capacity</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fef3c7;"><i class="bi bi-clock" style="color:#d97706;"></i></div>
+            <div class="stat-value" style="font-size:18px;">{{ user.doctor_profile.consultation_start|time:"h:i A" }}</div>
+            <div class="stat-label">Start Time</div>
+        </div>
+    </div>
+</div>
+
+<!-- Live Queue -->
+<div class="ghk-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-ol me-2"></i>Live Queue (Next 15 Patients)</span>
+    </div>
+    <div class="card-body p-0">
+        {% if queue %}
+        <div class="table-responsive">
+            <table class="table ghk-table mb-0">
+                <thead><tr>
+                    <th>Token No</th><th>Patient Name</th><th>Chief Complaint</th><th>Wait Time</th><th>Action</th>
+                </tr></thead>
+                <tbody>
+                {% for appt in queue %}
+                <tr>
+                    <td>
+                        <span class="token-badge" style="width:40px;height:40px;font-size:14px;">
+                            {{ appt.token_number }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="font-weight:600;">{{ appt.patient_display_name }}</div>
+                        {% if appt.dependent %}<span class="badge bg-light text-dark border" style="font-size:9px;">Dependent</span>{% endif %}
+                    </td>
+                    <td style="color:#64748b;font-size:13px;">{{ appt.chief_complaint|default:"—"|truncatechars:40 }}</td>
+                    <td>
+                        <span class="text-danger fw-bold"><i class="bi bi-clock-history me-1"></i>{{ appt.wait_time_minutes }}m</span>
+                    </td>
+                    <td>
+                        <a href="{% url 'active_consultation' appt.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size:12px;">
+                            Start Consultation
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5" style="color:#94a3b8;">
+            <i class="bi bi-calendar-check" style="font-size:40px;display:block;margin-bottom:12px;"></i>
+            No waiting patients in queue.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

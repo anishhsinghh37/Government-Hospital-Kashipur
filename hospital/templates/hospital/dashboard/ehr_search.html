@@ -1,0 +1,81 @@
+{% extends 'hospital/base.html' %}
+{% block title %}EHR Search{% endblock %}
+{% block page_title %}<i class="bi bi-search me-2"></i>Medical Records Search{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="ghk-card mb-4">
+            <div class="card-body p-4">
+                <form method="GET" class="d-flex gap-2">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" 
+                               placeholder="Search by Patient Name or Report Title (e.g. 'Ramesh' or 'Blood Test')..." 
+                               style="font-size: 16px;">
+                    </div>
+                    <button type="submit" class="btn btn-ghk-primary px-4 fw-bold">SEARCH</button>
+                </form>
+                <div class="mt-2 small text-muted">
+                    <i class="bi bi-shield-lock me-1"></i> Showing records only for patients you have treated.
+                </div>
+            </div>
+        </div>
+
+        {% if query %}
+        <div class="ghk-card">
+            <div class="card-header">Search Results for "{{ query }}"</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table ghk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Patient</th>
+                                <th>Record Title</th>
+                                <th>Category</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in results %}
+                            <tr>
+                                <td>{{ record.record_date }}</td>
+                                <td>
+                                    <div class="fw-bold">{{ record.patient.display_name }}</div>
+                                    <div class="small text-muted">ID: #{{ record.patient.id }}</div>
+                                </td>
+                                <td>{{ record.title }}</td>
+                                <td>
+                                    <span class="badge {% if record.category == 'LAB_REPORT' %}urgency-blue{% else %}urgency-green{% endif %}">
+                                        {{ record.get_category_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ record.file.url }}" target="_blank" class="btn btn-sm btn-light border rounded-pill">
+                                        <i class="bi bi-eye me-1"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="bi bi-clipboard-x d-block mb-2" style="font-size: 40px; color: #cbd5e1;"></i>
+                                    <div class="text-muted">No records found matching your query.</div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5 mt-4">
+            <div style="font-size: 80px; opacity: 0.1;"><i class="bi bi-file-earmark-medical"></i></div>
+            <h5 class="text-muted mt-3">Enter a patient name or keyword to search medical history.</h5>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

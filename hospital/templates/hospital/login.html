@@ -1,0 +1,84 @@
+{% extends 'hospital/base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block auth_content %}
+<div class="w-100" style="max-width: 420px; padding: 20px;">
+    <!-- Logo / Header -->
+    <div class="text-center mb-4">
+        <div style="width:72px;height:72px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;backdrop-filter:blur(10px);">
+            <i class="bi bi-hospital" style="font-size:36px;color:white;"></i>
+        </div>
+        <h1 style="color:white;font-size:22px;font-weight:800;letter-spacing:-0.5px;">Government Hospital Kashipur</h1>
+        <p style="color:rgba(255,255,255,0.65);font-size:13px;margin-top:4px;">Uttarakhand Government · Hospital Management System</p>
+    </div>
+
+    <!-- Login Card -->
+    <div style="background:rgba(255,255,255,0.97);border-radius:20px;padding:36px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <h2 style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:6px;">Welcome Back</h2>
+        <p style="font-size:13px;color:#64748b;margin-bottom:24px;">Sign in to access your dashboard</p>
+
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} py-2 px-3" style="font-size:13px;border-radius:10px;">
+            {{ message }}
+        </div>
+        {% endfor %}
+
+        <form method="post" id="login-form">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label" style="font-size:13px;font-weight:600;color:#374151;">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text" style="background:#f8fafc;border-right:none;border-radius:10px 0 0 10px;">
+                        <i class="bi bi-person" style="color:#94a3b8;"></i>
+                    </span>
+                    <input type="text" name="username" class="form-control" placeholder="Enter username"
+                           style="border-left:none;border-radius:0 10px 10px 0;" required autofocus>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label" style="font-size:13px;font-weight:600;color:#374151;">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text" style="background:#f8fafc;border-right:none;border-radius:10px 0 0 10px;">
+                        <i class="bi bi-lock" style="color:#94a3b8;"></i>
+                    </span>
+                    <input type="password" name="password" id="password-field" class="form-control" placeholder="Enter password"
+                           style="border-left:none;border-radius:0 10px 10px 0;" required>
+                    <button type="button" class="btn btn-outline-secondary" style="border-radius:0 10px 10px 0;border-left:none;"
+                            onclick="togglePwd()">
+                        <i class="bi bi-eye" id="eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-ghk-primary w-100 py-2 mb-3" style="border-radius:12px;font-size:15px;">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+            </button>
+        </form>
+
+        <hr style="border-color:#e2e8f0;margin:20px 0;">
+
+        <div class="text-center" style="font-size:13px;color:#64748b;">
+            New patient?
+            <a href="{% url 'register_patient' %}" style="color:#1a4f8a;font-weight:600;text-decoration:none;">Register here</a>
+            &nbsp;|&nbsp;
+            Staff?
+            <a href="{% url 'register_staff' %}" style="color:#1a4f8a;font-weight:600;text-decoration:none;">Staff Registration</a>
+        </div>
+    </div>
+
+    <p style="text-align:center;color:rgba(255,255,255,0.4);font-size:11px;margin-top:16px;">
+        © 2024 Government Hospital Kashipur · Uttarakhand Government
+    </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePwd() {
+    const f = document.getElementById('password-field');
+    const i = document.getElementById('eye-icon');
+    if (f.type === 'password') { f.type = 'text'; i.className = 'bi bi-eye-slash'; }
+    else { f.type = 'password'; i.className = 'bi bi-eye'; }
+}
+</script>
+{% endblock %}

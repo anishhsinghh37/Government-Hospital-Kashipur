@@ -1,0 +1,98 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Book Appointment{% endblock %}
+{% block page_title %}<i class="bi bi-calendar-plus me-2"></i>Book Appointment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <!-- Info Banner -->
+        <div class="alert alert-info d-flex gap-3 align-items-start mb-4" style="border-radius:14px;border-left:5px solid #0d6efd;border:none;background:#eff6ff;">
+            <i class="bi bi-info-circle-fill text-primary mt-1 fs-5"></i>
+            <div>
+                <strong>First-Book, First-Serve Queue</strong><br>
+                <span style="font-size:13px;color:#64748b;">
+                    Appointments are ordered by booking time. Your Token Number reflects your position in today's queue.
+                    Please arrive at least 15 minutes before your token is called.
+                </span>
+            </div>
+        </div>
+
+        <div class="ghk-card">
+            <div class="card-header">
+                <i class="bi bi-calendar-plus me-2"></i>New Appointment
+            </div>
+            <div class="card-body p-4">
+                <form method="post" id="appointment-form">
+                    {% csrf_token %}
+
+                    <!-- Book For -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold" style="font-size:13px;color:#374151;">
+                            <i class="bi bi-person me-1"></i>Book Appointment For
+                        </label>
+                        {{ form.dependent }}
+                        <div class="form-text">Select a family member or leave as "myself".</div>
+                    </div>
+
+                    <!-- Doctor Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold" style="font-size:13px;color:#374151;">
+                            <i class="bi bi-person-badge me-1"></i>Select Doctor <span class="text-danger">*</span>
+                        </label>
+                        {{ form.doctor }}
+                        {% if form.doctor.errors %}
+                        <div class="text-danger mt-1" style="font-size:12px;">{{ form.doctor.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Date -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold" style="font-size:13px;color:#374151;">
+                            <i class="bi bi-calendar3 me-1"></i>Appointment Date <span class="text-danger">*</span>
+                        </label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                        <div class="text-danger mt-1" style="font-size:12px;">{{ form.date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Chief Complaint -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold" style="font-size:13px;color:#374151;">
+                            <i class="bi bi-clipboard2-pulse me-1"></i>Chief Complaint / Reason for Visit
+                        </label>
+                        {{ form.chief_complaint }}
+                        <div class="form-text">Briefly describe the main health concern.</div>
+                    </div>
+
+                    <!-- Session notice -->
+                    <div class="alert alert-warning py-2 px-3 d-flex gap-2 align-items-center" style="border-radius:10px;font-size:13px;">
+                        <i class="bi bi-clock"></i>
+                        Your session will auto-logout after <strong>15 minutes</strong> of inactivity.
+                    </div>
+
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-ghk-primary py-3" style="font-size:16px;border-radius:12px;">
+                            <i class="bi bi-check2-circle me-2"></i>Confirm Appointment &amp; Get Token
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add dependent shortcut -->
+        <div class="text-center mt-3" style="font-size:13px;color:#64748b;">
+            Need to add a family member first?
+            <a href="{% url 'add_dependent' %}" style="color:#1a4f8a;font-weight:600;text-decoration:none;">Add Family Member →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set min date to today
+document.querySelector('[name="date"]').min = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

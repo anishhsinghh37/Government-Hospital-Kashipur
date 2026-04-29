@@ -1,0 +1,85 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Stock Audit Log{% endblock %}
+{% block page_title %}<i class="bi bi-journal-text me-2"></i>Stock Audit Log{% endblock %}
+
+{% block content %}
+<div class="alert alert-info d-flex gap-2 align-items-start mb-4" style="border-radius:14px;border:none;background:#eff6ff;border-left:4px solid #0d6efd;">
+    <i class="bi bi-shield-lock-fill text-primary fs-5 mt-1"></i>
+    <div>
+        <strong>Tamper-Proof Audit Trail</strong> — This log cannot be edited or deleted. Every stock change (addition, removal, or dispense via prescription) is permanently recorded here with the responsible staff member's name and timestamp.
+    </div>
+</div>
+
+<div class="ghk-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-journal-text me-2"></i>All Stock Transactions</span>
+        <span class="badge" style="background:#dbeafe;color:#1a4f8a;">{{ page_obj.paginator.count }} records</span>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table ghk-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Medicine Name</th>
+                        <th>Action</th>
+                        <th>Change Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for log in page_obj %}
+                <tr>
+                    <td style="font-size:13px;color:#1e293b;">{{ log.timestamp|date:"d M Y, H:i" }}</td>
+                    <td style="font-size:13px;font-weight:600;">{{ log.pharmacist.display_name|default:"System" }}</td>
+                    <td style="font-size:13px;">{{ log.medicine.medicine_name|default:"—" }}</td>
+                    <td>
+                        {% if log.action == 'ADD' %}
+                        <span class="badge bg-success-subtle text-success px-2 py-1">Restock</span>
+                        {% elif log.action == 'REMOVE' %}
+                        <span class="badge bg-danger-subtle text-danger px-2 py-1">Removal</span>
+                        {% elif log.action == 'DISPENSE' %}
+                        <span class="badge bg-primary-subtle text-primary px-2 py-1">Sale / Dispense</span>
+                        {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1">{{ log.get_action_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="font-weight:800;{% if log.quantity_changed > 0 %}color:#198754;{% else %}color:#dc3545;{% endif %}">
+                            {{ log.quantity_changed|stringformat:"+d" }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="d-flex justify-content-center p-3">
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹ Prev</a></li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next ›</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-5" style="color:#94a3b8;">
+            <i class="bi bi-journal" style="font-size:40px;display:block;margin-bottom:12px;"></i>
+            No audit records yet.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends 'hospital/base.html' %}
+
+{% block title %}Upload Past History{% endblock %}
+{% block page_title %}Upload Past Medical History{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="ghk-card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>New History Record
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small mb-4">
+                    Upload medical documents from other hospitals or past years. This helps your doctor understand your medical background better.
+                </p>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Report For</label>
+                        {{ form.linked_member }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Document Title</label>
+                        {{ form.title }}
+                        <div class="form-text">e.g., Surgery Discharge Summary 2022, Old Cardiac Report</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Report Category</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Record Date</label>
+                            {{ form.record_date }}
+                            <div class="form-text">The date this test/event took place.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select File</label>
+                        {{ form.file }}
+                        <div class="form-text">Accepted: PDF, JPG, PNG (Max 5MB)</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Additional Notes (Optional)</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-ghk-primary">
+                            <i class="bi bi-cloud-arrow-up me-2"></i>Upload
+                        </button>
+                        <a href="{% url 'ehr_dashboard' %}" class="btn btn-light">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-10">
+        <div class="ghk-card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>Your Past Document History
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table ghk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Patient</th>
+                                <th>Title</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in past_docs %}
+                            <tr>
+                                <td>{{ doc.record_date|date:"d M Y" }}</td>
+                                <td>
+                                    {% if doc.linked_member %}
+                                        <span class="fw-semibold">{{ doc.linked_member.name }}</span>
+                                    {% else %}
+                                        <span class="fw-semibold">Self</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ doc.title }}</strong></td>
+                                <td>
+                                    <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> View/Download
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">No historical documents uploaded yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

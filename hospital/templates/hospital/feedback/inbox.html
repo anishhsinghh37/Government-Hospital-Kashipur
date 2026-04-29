@@ -1,0 +1,114 @@
+{% extends 'hospital/base.html' %}
+{% block title %}My Inquiries & Replies{% endblock %}
+{% block page_title %}<i class="bi bi-inbox me-2"></i>My Inquiries & Replies{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="ghk-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-2"></i>Inquiry History</span>
+                <a href="{% url 'submit_feedback' %}" class="btn btn-sm btn-ghk-primary">
+                    <i class="bi bi-plus-lg me-1"></i>New Inquiry
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table ghk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Date</th>
+                                <th>Subject</th>
+                                <th>Urgency</th>
+                                <th>Status</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in feedbacks %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-semibold text-dark">{{ f.created_at|date:"d M, Y" }}</div>
+                                    <div class="text-muted small">{{ f.created_at|time:"H:i" }}</div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-ghk-primary">{{ f.subject }}</div>
+                                    <div class="text-muted text-truncate" style="max-width: 300px;">{{ f.message|truncatewords:10 }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill {% if f.urgency == 'RED' %}urgency-red{% elif f.urgency == 'YELLOW' %}urgency-yellow{% else %}urgency-green{% endif %} px-3 py-2">
+                                        {{ f.get_urgency_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if f.is_resolved %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Resolved
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-2">
+                                        <i class="bi bi-hourglass-split me-1"></i>Open
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="collapse" data-bs-target="#feedback-{{ f.id }}" style="width:32px; height:32px; color: var(--ghk-primary);">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse border-0" id="feedback-{{ f.id }}">
+                                <td colspan="5" class="p-0 border-0">
+                                    <div class="p-4" style="background: #f8fafc; border-left: 4px solid var(--ghk-primary);">
+                                        <div class="row g-4">
+                                            <div class="col-md-6">
+                                                <div class="text-muted small mb-1 fw-bold text-uppercase" style="letter-spacing: 0.5px;">My Message</div>
+                                                <div class="p-3 bg-white rounded-3 border shadow-sm" style="font-size: 14px; line-height: 1.6;">
+                                                    {{ f.message }}
+                                                    {% if f.file_attachment %}
+                                                    <div class="mt-3 pt-3 border-top">
+                                                        <a href="{{ f.file_attachment.url }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" target="_blank">
+                                                            <i class="bi bi-paperclip me-1"></i>View Attachment
+                                                        </a>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="text-muted small mb-1 fw-bold text-uppercase" style="letter-spacing: 0.5px;">Admin Reply</div>
+                                                <div class="p-3 {% if f.admin_response %}bg-white{% else %}bg-light{% endif %} rounded-3 border shadow-sm" style="font-size: 14px; line-height: 1.6; min-height: 100px; display: flex; flex-direction: column; justify-content: center;">
+                                                    {% if f.admin_response %}
+                                                        <div class="text-dark">{{ f.admin_response }}</div>
+                                                        <div class="mt-2 text-muted text-end small">— Management Team</div>
+                                                    {% else %}
+                                                        <div class="text-center py-3">
+                                                            <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                                                            <div class="text-muted italic">Awaiting Response from Administration...</div>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="mb-3"><i class="bi bi-inbox text-muted" style="font-size: 48px;"></i></div>
+                                    <div class="h5 text-muted">No inquiries found</div>
+                                    <p class="text-muted small">You haven't submitted any feedback or complaints yet.</p>
+                                    <a href="{% url 'submit_feedback' %}" class="btn btn-ghk-primary rounded-pill px-4 mt-2">
+                                        <i class="bi bi-plus-lg me-2"></i>Send First Inquiry
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

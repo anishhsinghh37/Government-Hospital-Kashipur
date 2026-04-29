@@ -1,0 +1,47 @@
+{% extends 'hospital/base.html' %}
+{% block title %}Nurse Dashboard{% endblock %}
+{% block page_title %}<i class="bi bi-heart-pulse me-2"></i>Nurse Dashboard{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,#0891b2,#0e7490);border-radius:20px;padding:28px 32px;margin-bottom:28px;color:white;position:relative;overflow:hidden;">
+    <div style="position:absolute;right:-10px;bottom:-20px;font-size:100px;opacity:0.08;"><i class="bi bi-heart-pulse"></i></div>
+    <h2 style="font-weight:800;">Nursing Station</h2>
+    <p style="opacity:0.75;font-size:14px;margin:4px 0;">{{ user.display_name }} · {{ today }}</p>
+    <p style="opacity:0.6;font-size:13px;margin:0;">{{ appointments|length }} patient(s) in queue</p>
+</div>
+
+<div class="ghk-card">
+    <div class="card-header"><i class="bi bi-list-ol me-2"></i>Current Patient Queue</div>
+    <div class="card-body p-0">
+        {% if appointments %}
+        <div class="table-responsive">
+            <table class="table ghk-table mb-0">
+                <thead><tr><th>Token</th><th>Patient</th><th>Doctor</th><th>Complaint</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for appt in appointments %}
+                <tr style="{% if appt.status == 'IN_PROGRESS' %}background:#f0fdf4;{% endif %}">
+                    <td><span class="token-badge {% if appt.status == 'IN_PROGRESS' %}current{% endif %}" style="width:40px;height:40px;font-size:14px;">{{ appt.token_number }}</span></td>
+                    <td>
+                        <div style="font-weight:600;">{{ appt.patient_display_name }}</div>
+                        {% if appt.dependent %}<span class="badge bg-warning text-dark" style="font-size:10px;">Dep.</span>{% endif %}
+                    </td>
+                    <td style="font-size:13px;">Dr. {{ appt.doctor.user.get_full_name }}</td>
+                    <td style="font-size:13px;color:#64748b;">{{ appt.chief_complaint|default:"—"|truncatechars:40 }}</td>
+                    <td>
+                        {% if appt.status == 'IN_PROGRESS' %}<span class="badge bg-success">🔔 Now</span>
+                        {% else %}<span class="badge" style="background:#dbeafe;color:#1a4f8a;">⏳ Waiting</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5" style="color:#94a3b8;">
+            <i class="bi bi-check-circle" style="font-size:40px;display:block;margin-bottom:12px;color:#198754;"></i>
+            Queue is clear for today.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

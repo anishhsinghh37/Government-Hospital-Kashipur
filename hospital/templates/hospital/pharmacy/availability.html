@@ -1,0 +1,113 @@
+{% extends 'hospital/base.html' %}
+
+{% block title %}Medicine Availability{% endblock %}
+{% block page_title %}Pharmacy — Medicine Stock Status{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <!-- Search Header -->
+        <div class="ghk-card mb-4" style="background: linear-gradient(135deg, #0a2a52, #1a4f8a); color: white;">
+            <div class="card-body p-5 text-center">
+                <h3 class="fw-800 mb-2">Pharmacy Portal</h3>
+                <p class="opacity-75 mb-4">Search for medicines available free of cost at the hospital pharmacy.</p>
+                
+                <form method="get" class="mx-auto" style="max-width: 500px;">
+                    <div class="input-group input-group-lg shadow-lg">
+                        <span class="input-group-text bg-white border-0 text-primary">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="q" class="form-control border-0" placeholder="Type medicine name (min 3 letters)..." value="{{ query }}" minlength="3">
+                        <button class="btn btn-ghk-primary px-4" type="submit">Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="ghk-card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-list-stars me-2"></i>Available Stock</span>
+                {% if query %}
+                    <span class="text-muted small">Showing results for "{{ query }}"</span>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table ghk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Medicine Name</th>
+                                <th>Generic / Salt Name</th>
+                                <th class="text-center">Availability Status</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for med in page_obj %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ med.medicine_name }}</div>
+                                    <small class="text-muted">Expiry: {{ med.expiry_date|date:"M Y" }}</small>
+                                </td>
+                                <td>{{ med.generic_name|default:"—" }}</td>
+                                <td class="text-center">
+                                    {% if med.total_quantity > 0 %}
+                                        <span class="badge bg-success py-2 px-3 rounded-pill">
+                                            <i class="bi bi-check-circle-fill me-1"></i> IN STOCK
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger py-2 px-3 rounded-pill">
+                                            <i class="bi bi-x-circle-fill me-1"></i> OUT OF STOCK
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-light text-dark">{{ med.get_unit_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    {% if query %}
+                                        <div class="mb-2"><i class="bi bi-search display-4 text-light"></i></div>
+                                        <p class="text-muted">No medicines found matching "{{ query }}".</p>
+                                    {% else %}
+                                        <p class="text-muted">Enter a medicine name above to check its availability status.</p>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            {% if page_obj.has_other_pages %}
+            <div class="card-footer bg-white border-0 py-3">
+                <nav>
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+                        {% endif %}
+                        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}">Next</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Policy Note -->
+        <div class="bg-white rounded-3 p-4 mt-4 border">
+            <div class="d-flex gap-3">
+                <div class="text-primary fs-3"><i class="bi bi-shield-check"></i></div>
+                <div>
+                    <h6 class="fw-bold mb-1">Government Free Medicine Policy</h6>
+                    <p class="small text-muted mb-0">All medicines marked as "IN STOCK" are provided free of cost to patients with a valid doctor's prescription from our hospital. Avoid purchasing from outside pharmacies if the medicine is available here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
