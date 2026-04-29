@@ -1,58 +1,30 @@
 import os
 import django
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  1. Setup Django Environment
-# ──────────────────────────────────────────────────────────────────────────────
-# This allows the script to be run independently from the command line.
+# Set up Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ghk.settings')
 django.setup()
 
-from hospital.models import CustomUser
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
-def create_admin_user():
-    """
-    Automatically creates a Superuser with 'Admin' role if it doesn't already exist.
-    """
-    username = 'admin_kashipur'
-    email = 'admin@ghk.com'
-    password = 'Kashipur@2026'
-    role = 'ADMIN'  # Using the constant value from CustomUser model
+def create_superuser():
+    username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+    email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@ghk.com')
+    password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin123')
 
-    print(f"Checking if user '{username}' exists...")
-
-    if CustomUser.objects.filter(username=username).exists():
-        print(f"[-] Skip: User '{username}' already exists in the database.")
-        return
-
-    try:
-        print(f"[+] Creating superuser '{username}'...")
-        
-        # We use create_superuser to handle hashing and default superuser flags
-        user = CustomUser.objects.create_superuser(
+    if not User.objects.filter(username=username).exists():
+        print(f"Creating superuser: {username}")
+        User.objects.create_superuser(
             username=username,
             email=email,
-            password=password
+            password=password,
+            role='ADMIN',
+            is_approved=True
         )
+        print("Superuser created successfully.")
+    else:
+        print(f"Superuser {username} already exists.")
 
-        # 4. Profile & Roles: Ensure flags and custom fields are set
-        user.role = role
-        user.is_staff = True
-        user.is_superuser = True
-        user.is_active = True
-        user.is_approved = True  # Staff/Admin must be approved to login in this project
-        user.save()
-
-        print("─────────────────────────────────────────────────────────────────")
-        print(f"Successfully created Superuser!")
-        print(f"Username : {username}")
-        print(f"Email    : {email}")
-        print(f"Role     : {role}")
-        print(f"Flags    : Superuser=True, Staff=True, Active=True, Approved=True")
-        print("─────────────────────────────────────────────────────────────────")
-
-    except Exception as e:
-        print(f"[!] Error creating user: {e}")
-
-if __name__ == '__main__':
-    create_admin_user()
+if __name__ == "__main__":
+    create_superuser()
