@@ -183,7 +183,6 @@ class Appointment(models.Model):
     chief_complaint = models.TextField(blank=True)
     notes        = models.TextField(blank=True)
     doctor_advice = models.TextField(blank=True, help_text="Final advice for the patient.")
-    next_visit_date = models.DateField(null=True, blank=True)
 
     class Meta:
         verbose_name      = 'Appointment'
@@ -335,6 +334,7 @@ class Prescription(models.Model):
         CustomUser, on_delete=models.SET_NULL, null=True
     )
     prescribed_at  = models.DateTimeField(auto_now_add=True)
+    next_visit_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.medicine} for {self.appointment}"

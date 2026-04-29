@@ -241,20 +241,15 @@ class StockUpdateForm(forms.Form):
 class PrescriptionForm(forms.ModelForm):
     class Meta:
         model   = Prescription
-        fields  = ('medicine', 'dosage', 'quantity_prescribed', 'duration_days', 'instructions')
+        fields  = ('medicine', 'dosage', 'quantity_prescribed', 'duration_days', 'instructions', 'next_visit_date')
         widgets = {
             'medicine':           forms.Select(attrs={'class': 'form-select', 'id': 'medicine-select'}),
             'dosage':             forms.TextInput(attrs={'class': 'form-control'}),
             'quantity_prescribed':forms.NumberInput(attrs={'class': 'form-control'}),
             'duration_days':      forms.NumberInput(attrs={'class': 'form-control'}),
             'instructions':       forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'next_visit_date':    forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
-
-    next_visit_date = forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        label="Recommended Next Visit Date"
-    )
 
 
 # ─────────────────────────────────────────────
